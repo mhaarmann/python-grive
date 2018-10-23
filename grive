@@ -227,14 +227,7 @@ def walk_tree_list_remote(items, parent_id, name):
                 else:
                     item_tmp['name'] = name + item['name']
                 # check for dubbel names
-                item_is_listed = False
-                for item_tree in tree_list:
-                    if item_tree['name'] == item_tmp['name']:
-                        # a item with the same name is allready in list
-                        logging.debug('Skipp dubbel adding item "' + item_tmp['name'] + '" to remote List...')
-                        sendmessage(cloudName + ' (WARNING, DUBBELD ITEM!)', 'Skipping: ' + item_tmp['name'])
-                        item_is_listed = True
-                if item_is_listed == False:
+                if dict_search_name(tree_list, item_tmp['name']) == None:
                     if item['mimeType'] == 'application/vnd.google-apps.folder': # if folder
                         tree_list.append(item_tmp)
                         walk_tree_list_remote(items, item['id'], item_tmp['name'] + '/')
@@ -247,6 +240,9 @@ def walk_tree_list_remote(items, parent_id, name):
                         tree_list.append(item_tmp)
                     else:
                         logging.debug('Skip unsupported Google File...')
+                else:
+                    logging.debug('Skipp dubbel adding item "' + item_tmp['name'] + '" to remote List...')
+                    sendmessage(cloudName + ' (WARNING, DUBBELD ITEM!)', 'Skipping: ' + item_tmp['name'])
 
 def get_tree_list_remote():
     global tree_list
@@ -470,24 +466,6 @@ def remote_move_file(file_id, filename, modifiedEpoch, parent_add, parend_remove
 
 def get_remote_info_by_id(id):
     return cloudService.files().get(fileId=id, fields="name, modifiedTime, mimeType, md5Checksum, parents").execute()
-
-def search_remote_by_id(file_id):
-    # Search for a File in Google Drive by ID
-    fullpath = ''
-    while True:
-        request = cloudService.files().get(fileId=file_id, fields="name, parents, mimeType").execute()
-        if request.get('parents'):
-            if request['mimeType'] == 'application/vnd.google-apps.folder':
-                fullpath = request['name'] + '/' + fullpath
-                file_id = request['parents'][0]
-            else:
-                fullpath = request['name']
-                file_id = request['parents'][0]
-        else:
-            # if the request have no parents, it is the root dir
-            fullpath = '/' + fullpath
-            break
-    return fullpath
 
 def check_remote_trashed_by_id(file_id):
     # Search for a File in Google Drive by ID
@@ -1134,64 +1112,9 @@ def detect_changes(saved_start_page_token, foldername):
         response = cloudService.changes().list(pageToken=page_token, spaces='drive').execute()
         for change in response.get('changes'):
             if change.get('file'):
-                logging.debug('Check Change...')
-                if change['file']['mimeType'] == 'application/vnd.google-apps.folder':
-                    if check_remote_trashed_by_id(change['file']['id']) == True:
-                        # Moved to Trash?
-                        logging.debug('Sync Dirs...')
-                        sendmessage(cloudName + ' (detect remote changes)', 'Files changes...')
-                        eventLoop()
-                    else:
-                        remote_path = search_remote_by_id(change['file']['id'])
-                        local_path = os.path.join(foldername + remote_path)
-                        if not os.path.exists(local_path):
-                            logging.debug('Sync Dir...')
-                            sendmessage(cloudName + ' (detect remote changes)', remote_path)
-                            eventLoop()
-                elif not change['file']['mimeType'].startswith('application/vnd.google-apps.'):
-                    # check if file is not in GOOGLE_MIME_TYPES
-                    if check_remote_trashed_by_id(change['file']['id']) == True:
-                        # Moved to Trash?
-                        logging.debug('Sync Files...')
-                        sendmessage(cloudName + ' (detect remote changes)', 'Files changes...')
-                        eventLoop()
-                    else:
-                        remote_path = search_remote_by_id(change['file']['id'])
-                        local_path = os.path.join(foldername + remote_path)
-                        if os.path.isfile(local_path):
-                            remote_item = get_remote_info_by_id(change['file']['id'])
-                            if hashlib.md5(open(local_path, 'rb').read()).hexdigest() != remote_item['md5Checksum']:
-                                logging.debug('Sync File...')
-                                sendmessage(cloudName + ' (detect remote changes)', remote_path)
-                                eventLoop()
-                        else:
-                            logging.debug('Sync File...')
-                            sendmessage(cloudName + ' (detect remote changes)', remote_path)
-                            eventLoop()
-                elif change['file']['mimeType'] in GOOGLE_MIME_TYPES.keys():
-                    # check if file is in GOOGLE_MIME_TYPES
-                    if check_remote_trashed_by_id(change['file']['id']) == True:
-                        # Moved to Trash?
-                        logging.debug('Sync Google Files...')
-                        sendmessage(cloudName + ' (detect remote changes)', 'Files changes...')
-                        eventLoop()
-                    else:
-                        remote_path = search_remote_by_id(change['file']['id'])
-                        local_path = os.path.join(foldername + remote_path + GOOGLE_MIME_TYPES[change['file']['mimeType']][1])
-                        if os.path.isfile(local_path):
-                            remote_item = get_remote_info_by_id(change['file']['id'])
-                            remote_epoch = time.mktime(time.strptime(remote_item['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ'))
-                            local_epoch = time.mktime(time.localtime(os.path.getmtime(local_path)))
-                            if remote_epoch != local_epoch:
-                                logging.debug('Sync Google File...')
-                                sendmessage(cloudName + ' (detect remote changes)', remote_path)
-                                eventLoop()
-                        else:
-                            logging.debug('Sync Google File...')
-                            sendmessage(cloudName + ' (detect remote changes)', remote_path)
-                            eventLoop()
-                else:
-                    logging.debug('Skip unsupported Google File...')
+                logging.debug('Sync for remote changes (' + change['file']['name'] + ')...')
+                sendmessage(cloudName + ' (detect remote changes)', change['file']['name'])
+                eventLoop()
         if 'newStartPageToken' in response:
             # Last page, save this token for the next polling interval
             saved_start_page_token = response.get('newStartPageToken')
@@ -1330,7 +1253,7 @@ def syncNow(widget):
 def runWorker():
     global timerWorker
     if not check_running_thread('sync'):
-        if threadExitCodeSync != False:
+        if threadExitCodeSync == True:
             menu_last_sync.set_label('Last Sync: %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             sendmessage(cloudName + ' (synchronizing)', 'Finished!')
             ind.set_icon_full(icon_path, 'finished')
