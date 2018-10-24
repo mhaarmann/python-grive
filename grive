@@ -400,7 +400,9 @@ def upload_file_replace(filename, item_id):
     request = cloudService.files().update(fileId=item_id, body=body, media_body=media_body, fields="name, id, modifiedTime, mimeType, md5Checksum").execute()
     if request['md5Checksum'] != hashlib.md5(open(os.path.join(filename), 'rb').read()).hexdigest():
         logging.warning('Upload File (MD5SUM) failed!')
-        delete_remote_erase(request['id'])
+        request_trash = delete_remote_trash(request['id'])
+        if request_trash == None:
+            delete_remote_erase(request['id'])
         return None
     return request
 
