@@ -1057,7 +1057,6 @@ def syncThread():
     try:
         if list_static != read_items_json_file(cloudStatusFile):
             logging.debug('Save Status File...')
-            sendmessage(cloudName + ' (synchronizing)', 'Save Status File...')
             write_items_json_file(list_static, cloudStatusFile)
     except:
         logging.warning('Failed to save Status File...')
@@ -1243,7 +1242,6 @@ def syncNow(widget):
     join_running_thread('init')
     join_running_thread('polling')
     logging.debug('Now Sync...')
-    sendmessage(cloudName + ' (synchronizing)', 'Start...')
     t = threading.Thread(name='sync', target=syncThread)
     t.start()
     menu_sync_now.set_sensitive(False)
@@ -1255,7 +1253,6 @@ def runWorker():
     if not check_running_thread('sync'):
         if threadExitCodeSync == True:
             menu_last_sync.set_label('Last Sync: %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            sendmessage(cloudName + ' (synchronizing)', 'Finished!')
             ind.set_icon_full(icon_path, 'finished')
             if gsettings_app.get_boolean('autosync'):
                 autoSync('start')
