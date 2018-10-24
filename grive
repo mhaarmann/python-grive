@@ -344,7 +344,7 @@ def delete_local_trash(time, filename):
             number += 1
             filenameTrash = os.path.join(folderTrashTime + filename + '_' + number)
         else:
-            logging.log(30, 'Trash: Move "' + filenameLocal + '" to "' + filenameTrash  + '"')
+            logging.log(40, 'Trash: Move "' + filenameLocal + '" to "' + filenameTrash  + '"')
             os.rename(filenameLocal, filenameTrash)
             return
 
@@ -419,7 +419,7 @@ def download_file_export(filename, file_id):
                 logging.debug('Download %d%%' % int(status.progress() * 100))
         except:
             # only touch the file (export failed!)
-            logging.log(30, 'Fail: Export Google File "' + filename + '" (make a dummy file)...')
+            logging.log(40, 'Fail: Export Google File "' + filename + '" (make a dummy file)...')
             open(os.path.join(filename), 'a').close()
         # Update Modified Time for the local File
         file_epoche = time.mktime(time.strptime(request['modifiedTime'], '%Y-%m-%dT%H:%M:%S.%fZ'))
@@ -648,12 +648,12 @@ def syncThread():
                                 if item_old:
                                     list_static.remove(item_old)
                                 if not os.path.exists(os.path.join(cloudFolder + item['name'])):
-                                    logging.log(30, 'Fix DB: Create local Folder: ' + item['name'])
+                                    logging.log(40, 'Fix DB: Create local Folder: ' + item['name'])
                                     sendmessage(cloudName + ' (Handle DB Error, create local Folder!)', item['name'])
                                     create_local_folder(cloudFolder + item['name'])
                                 else:
                                     # do not run sendmessage, can crash the pc!
-                                    logging.log(30, 'Fix DB: Add Dir to DB: ' + item['name'])
+                                    logging.log(40, 'Fix DB: Add Dir to DB: ' + item['name'])
                                 item_remote = dict_search_name(list_remote, item['name'])
                                 list_static.append(check_save_item(item_remote))
                             except Exception:
@@ -663,7 +663,7 @@ def syncThread():
                                 return
                         if item['todo'] == 'DOWNLOAD':
                             try:
-                                logging.log(30, 'Create (local/folder): ' + item['name'])
+                                logging.log(40, 'Create (local/folder): ' + item['name'])
                                 sendmessage(cloudName + ' (create local Folder)', item['name'])
                                 create_local_folder(cloudFolder + item['name'])
                                 item_remote = dict_search_name(list_remote, item['name'])
@@ -674,7 +674,7 @@ def syncThread():
                                 return
                         if item['todo'] == 'UPLOAD':
                             try:
-                                logging.log(30, 'Create (remote/folder): ' + item['name'])
+                                logging.log(40, 'Create (remote/folder): ' + item['name'])
                                 sendmessage(cloudName + ' (create remote Folder)', item['name'])
                                 # search for parend dir id
                                 parent_dir = os.path.dirname(item['name'])
@@ -713,7 +713,7 @@ def syncThread():
                                     item['todo'] = 'DOWNLOAD_REPLACE'
                                 else:
                                     # do not run sendmessage, can crash the pc!
-                                    logging.log(30, 'Fix DB: Add (exported) File to DB: ' + item['name'])
+                                    logging.log(40, 'Fix DB: Add (exported) File to DB: ' + item['name'])
                                     list_static.append(check_save_item(item_remote))
                         else:
                             if item['todo'] == 'CHECK_FILE':
@@ -729,7 +729,7 @@ def syncThread():
                                             item['todo'] = 'UPLOAD_REPLACE'
                                     elif item_remote['modifiedEpoch'] != item_local['modifiedEpoch']:
                                         try:
-                                            logging.log(30, 'Update (local) modified Time: ' + item['name'])
+                                            logging.log(40, 'Update (local) modified Time: ' + item['name'])
                                             sendmessage(cloudName + ' (update modified Time for File)', item['name'])
                                             os.utime(cloudFolder + item['name'], (item_remote['modifiedEpoch'], item_remote['modifiedEpoch']))
                                         except Exception:
@@ -741,7 +741,7 @@ def syncThread():
                                     item['todo'] = 'DOWNLOAD_REPLACE'
                                 else:
                                     # do not run sendmessage, can crash the pc!
-                                    logging.log(30, 'Fix DB: Add File to DB: ' + item['name'])
+                                    logging.log(40, 'Fix DB: Add File to DB: ' + item['name'])
                                     list_static.append(check_save_item(item_remote))
                         # Dummy DOWNLOAD, for detect allready downloaded Files
                         if item['todo'] == 'DOWNLOAD':
@@ -753,7 +753,7 @@ def syncThread():
                                         # try to find out if the file is moved?
                                         item_search_remove = dict_search_name_by_todo(list_todo, item_search_local['name'], 'REMOVE_LOCAL')
                                         if item_search_remove != None:
-                                            logging.log(30, 'Move (local): From "' + item_search_local['name'] + '" to "' + item['name'] + '"')
+                                            logging.log(40, 'Move (local): From "' + item_search_local['name'] + '" to "' + item['name'] + '"')
                                             sendmessage(cloudName + ' (move/rename file)', item['name'])
                                             shutil.move(cloudFolder + item_search_local['name'], cloudFolder + item['name'])
                                             os.utime(cloudFolder + item['name'], (item_remote['modifiedEpoch'], item_remote['modifiedEpoch']))
@@ -769,7 +769,7 @@ def syncThread():
                                                 delete_local_trash(cloudFolder + item['name'])
                                                 logging.warning('Move File (try to download) failed!')
                                         else:
-                                            logging.log(30, 'Copy (local): From "' + item_search_local['name'] + '" to "' + item['name'] + '"')
+                                            logging.log(40, 'Copy (local): From "' + item_search_local['name'] + '" to "' + item['name'] + '"')
                                             sendmessage(cloudName + ' (copy file)', item['name'])
                                             shutil.copyfile(cloudFolder + item_search_local['name'], cloudFolder + item['name'])
                                             os.utime(cloudFolder + item['name'], (item_remote['modifiedEpoch'], item_remote['modifiedEpoch']))
@@ -784,7 +784,7 @@ def syncThread():
                                     # Try to find a local File in Trash with the same MD5 (allready downloaded?)
                                     item_search_trash = dict_search_checksum(list_trash, item_remote['md5Checksum'])
                                     if item_search_trash != None:
-                                        logging.log(30, 'Restore: From "' + item_search_trash['name'] + '" to "' + item['name'] + '"')
+                                        logging.log(40, 'Restore: From "' + item_search_trash['name'] + '" to "' + item['name'] + '"')
                                         sendmessage(cloudName + ' (restore file)', item['name'])
                                         shutil.move(cloudTrashFolder + item_search_trash['name'], cloudFolder + item['name'])
                                         os.utime(cloudFolder + item['name'], (item_remote['modifiedEpoch'], item_remote['modifiedEpoch']))
@@ -804,11 +804,11 @@ def syncThread():
                         if item['todo'] == 'DOWNLOAD':
                             try:
                                 if item['mimeType'] in GOOGLE_MIME_TYPES.keys():
-                                    logging.log(30, 'Download (export): ' + item['name'])
+                                    logging.log(40, 'Download (export): ' + item['name'])
                                     sendmessage(cloudName + ' (downloading)', 'Export: ' + item['name'])
                                     request = download_file_export(cloudFolder + item['name'], item_remote['id'])
                                 else:
-                                    logging.log(30, 'Download: ' + item['name'])
+                                    logging.log(40, 'Download: ' + item['name'])
                                     sendmessage(cloudName + ' (downloading)', item['name'])
                                     request = download_file(cloudFolder + item['name'], item_remote['id'])
                                 if request != None:
@@ -825,12 +825,12 @@ def syncThread():
                         if item['todo'] == 'DOWNLOAD_REPLACE':
                             try:
                                 if item['mimeType'] in GOOGLE_MIME_TYPES.keys():
-                                    logging.log(30, 'Download (export/replace): ' + item['name'])
+                                    logging.log(40, 'Download (export/replace): ' + item['name'])
                                     sendmessage(cloudName + ' (downloading changes)', 'Export: ' +  item['name'])
                                     delete_local_trash(sync_time, item['name'])
                                     request = download_file_export(cloudFolder + item['name'], item_remote['id'])
                                 else:
-                                    logging.log(30, 'Download (replace): ' + item['name'])
+                                    logging.log(40, 'Download (replace): ' + item['name'])
                                     sendmessage(cloudName + ' (downloading changes)', item['name'])
                                     delete_local_trash(sync_time, item['name'])
                                     request = download_file(cloudFolder + item['name'], item_remote['id'])
@@ -858,7 +858,7 @@ def syncThread():
                                     # try to find out if the file is moved?
                                     item_search_remove = dict_search_name_by_todo(list_todo, item_search_remote['name'], 'REMOVE_REMOTE')
                                     if item_search_remove != None:
-                                        logging.log(30, 'Move (remote): From "' + item_search_remote['name'] + '" to "' + item['name'] + '"')
+                                        logging.log(40, 'Move (remote): From "' + item_search_remote['name'] + '" to "' + item['name'] + '"')
                                         sendmessage(cloudName + ' (remote move/rename file)', item['name'])
                                         # search for parend dir id
                                         parent_dir_add = os.path.dirname(item['name'])
@@ -888,7 +888,7 @@ def syncThread():
                                         else:
                                             logging.warning('Remote move File (try to upload) failed!')
                                     else:
-                                        logging.log(30, 'Copy (remote): From "' + item_search_remote['name'] + '" to "' + item['name'] + '"')
+                                        logging.log(40, 'Copy (remote): From "' + item_search_remote['name'] + '" to "' + item['name'] + '"')
                                         sendmessage(cloudName + ' (remote copy file)', item['name'])
                                         # search for parend dir id
                                         parent_dir = os.path.dirname(item['name'])
@@ -914,7 +914,7 @@ def syncThread():
                                 return
                         if item['todo'] == 'UPLOAD':
                             try:
-                                logging.log(30, 'Upload: ' + item['name'])
+                                logging.log(40, 'Upload: ' + item['name'])
                                 sendmessage(cloudName + ' (uploading)', item['name'])
                                 # search for parend dir id
                                 parent_dir = os.path.dirname(item['name'])
@@ -938,7 +938,7 @@ def syncThread():
                                 return
                         if item['todo'] == 'UPLOAD_REPLACE':
                             try:
-                                logging.log(30, 'Upload (replace): ' + item['name'])
+                                logging.log(40, 'Upload (replace): ' + item['name'])
                                 sendmessage(cloudName + ' (uploading changes)', item['name'])
                                 request = upload_file_replace(cloudFolder + item['name'], item['id'])
                                 if request != None:
@@ -966,7 +966,7 @@ def syncThread():
                     if item.get('mimeType') == 'application/vnd.google-apps.folder':
                         if item['todo'] == 'REMOVE_REMOTE':
                             try:
-                                logging.log(30, 'Trash (remote/folder): ' + item['name'])
+                                logging.log(40, 'Trash (remote/folder): ' + item['name'])
                                 sendmessage(cloudName + ' (trash remote Folder)', item['name'])
                                 delete_remote_trash(item['id'])
                             except Exception:
@@ -975,7 +975,7 @@ def syncThread():
                                 return
                         if item['todo'] == 'REMOVE_LOCAL':
                             try:
-                                logging.log(30, 'Trash (local/folder): ' + item['name'])
+                                logging.log(40, 'Trash (local/folder): ' + item['name'])
                                 sendmessage(cloudName + ' (trash local Folder)', item['name'])
                                 delete_local_trash(sync_time, item['name'])
                             except Exception:
@@ -998,10 +998,10 @@ def syncThread():
                         if item['todo'] == 'REMOVE_REMOTE':
                             try:
                                 if item['mimeType'] in GOOGLE_MIME_TYPES.keys():
-                                    logging.log(30, 'Trash (remote/export): ' +  item['name'])
+                                    logging.log(40, 'Trash (remote/export): ' +  item['name'])
                                     sendmessage(cloudName + ' (trash remote File)', 'Export: ' + item['name'])
                                 else:
-                                    logging.log(30, 'Trash (remote/file): ' + item['name'])
+                                    logging.log(40, 'Trash (remote/file): ' + item['name'])
                                     sendmessage(cloudName + ' (trash remote File)', item['name'])
                                 request = delete_remote_trash(item['id'])
                                 if request != None:
@@ -1016,10 +1016,10 @@ def syncThread():
                         if item['todo'] == 'REMOVE_LOCAL':
                             try:
                                 if item['mimeType'] in GOOGLE_MIME_TYPES.keys():
-                                    logging.log(30, 'Trash (local/export): ' + item['name'])
+                                    logging.log(40, 'Trash (local/export): ' + item['name'])
                                     sendmessage(cloudName + ' (trash local File)', 'Export: ' + item['name'])
                                 else:
-                                    logging.log(30, 'Trash (local/file): ' + item['name'])
+                                    logging.log(40, 'Trash (local/file): ' + item['name'])
                                     sendmessage(cloudName + ' (trash local File)', item['name'])
                                 delete_local_trash(sync_time, item['name'])
                                 list_static.remove(dict_search_name(list_static, item['name']))
@@ -1477,11 +1477,12 @@ if __name__ == "__main__":
     gsettings_app = Gio.Settings.new("apps.grive")
 
     # Setup logging
+    # https://docs.python.org/3/howto/logging.html
     try:
         if gsettings_app.get_boolean("debug") == True:
             logging.basicConfig(level=logging.DEBUG)
         else:
-            logging.basicConfig(filename=cloudHistoryFile,level=logging.WARNING,format='%(asctime)s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
+            logging.basicConfig(filename=cloudHistoryFile,level=logging.ERROR,format='%(asctime)s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
     except:
         logging.basicConfig(level=logging.INFO)
 
@@ -1517,7 +1518,7 @@ if __name__ == "__main__":
         os.mkdir(cloudFolder)
     if not os.path.isfile(cloudStatusFile):
         item = []
-        logging.log(30, 'Info: Create a new DB File...')
+        logging.log(40, 'Info: Create a new DB File...')
         write_items_json_file(item, cloudStatusFile)
     os.chmod(cloudStatusFile, 0o600)
     if os.path.isfile(cloudConfigFile):
