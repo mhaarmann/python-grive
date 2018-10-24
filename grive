@@ -1109,11 +1109,14 @@ def detect_changes(saved_start_page_token, foldername):
     page_token = saved_start_page_token
     while page_token is not None:
         response = cloudService.changes().list(pageToken=page_token, spaces='drive').execute()
+        detect_changes = False
         for change in response.get('changes'):
             if change.get('file'):
-                logging.debug('Sync for remote changes (' + change['file']['name'] + ')...')
-                sendmessage(cloudName + ' (detect remote changes)', change['file']['name'])
-                eventLoop()
+                detect_changes = True
+        if detect_changes == True:
+            logging.debug('Sync for remote changes...')
+            sendmessage(cloudName + ' (detect remote changes)', 'Sync very soon...')
+            eventLoop()
         if 'newStartPageToken' in response:
             # Last page, save this token for the next polling interval
             saved_start_page_token = response.get('newStartPageToken')
