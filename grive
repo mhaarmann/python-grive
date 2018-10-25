@@ -1276,6 +1276,7 @@ def toggleAutoSync(widget):
       autoSync('start')
       icon_path = icon_path_active
       ind.set_icon_full(icon_path, 'start')
+      # sync at first startup
       eventLoop()
     else:
       autoSync('stop')
@@ -1444,7 +1445,7 @@ def renderMenu():
     menu.append(menu_quit)
 
     menu.show_all()
-    ind.set_icon_full(icon_path, 'menu')
+    ind.set_icon_full(icon_path_standby, 'menu')
     ind.set_menu(menu)
 
 ##### Main Loop
@@ -1489,8 +1490,8 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.INFO)
 
     # Create Application Indicator
-    ind = AppIndicator3.Indicator.new (appName, "indicator-messages", AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
-    ind.set_status (AppIndicator3.IndicatorStatus.ACTIVE)
+    ind = AppIndicator3.Indicator.new(appName, "indicator-messages", AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
+    ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 
     # Placeholder vars
     start_page_token = None
@@ -1504,16 +1505,12 @@ if __name__ == "__main__":
     timerServiceSetup = 0
 
     # Icon Paths
-    key = 'autosync'
     icon_path_grive = os.path.join(installDir,'icons', 'app.png')
     icon_path_active = os.path.join(installDir, 'icons', 'app-ind-active.png')
     icon_path_failed = os.path.join(installDir, 'icons', 'app-ind-error.png')
     icon_path_standby = os.path.join(installDir, 'icons', 'app-ind-sleep.png')
     icon_path_sync = os.path.join(installDir, 'icons', 'app-ind-sync.png')
-    if gsettings_app.get_boolean(key) == True:
-        icon_path = icon_path_active
-    else:
-        icon_path = icon_path_standby
+    icon_path = icon_path_standby
 
     # Check Folders and Files
     if not os.path.isdir(cloudFolder):
