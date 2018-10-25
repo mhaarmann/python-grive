@@ -1,17 +1,23 @@
 # Grive (Python)
-Google Drive client with support for new Drive REST API (v3) and partial sync
-![Alt text](/screenshot.png?raw=true "Screenshot")
+Google Drive client based on Drive REST API (v3) for bidirectional synchronization
 
-Grive can be considered still beta or pre-beta quality. It simply downloads all the files in your Google Drive into a directory. It detect automatic all changes on local and remote Store (Google Drive). After detectings changes, it load your changes back to your local or remote Store. New files created locally or in Google Drive will be uploaded or downloaded respectively. Deleted files will also be "removed" (move to trash). Currently Grive will NOT destroy any of your files: it will only move the files to a directory named ".trash" or put them in the Google Drive trash. You can always recover them!
+![Screenshot](/screenshot.png?raw=true "Screenshot")
+
+Grive automatically downloads all the files from your Google Drive into a local directory and uploads new local files the other way round. It detects all changes on both sides as well. Files deleted in Google Drive get moved to a local trash directory so you can always recover them!
+
+This application can be used to sync files between Google and a computer or just to backup a Google Drive to a local client automatically.
+
+Grive is still in Beta.
 
 #### Main features
-- Partial Sync a Folder with Google Drive
-- Export supported Google Files as "read only" (will be moved to trash and downloaded again, if you make some changes)
-- Try to prevent re-downloading and re-uploading if you rename or move something
+- Bidirectional Sync for Google Drive objects
+- Removed files on the remote side get moved to a directory named ".trash" on the local side
+- Trying to prevent re-downloading and re-uploading after renaming or moving an object
+- Download export supported Google Files as "read only" (after changes at Google, local files will be moved to trash and re-downloaded)
 
-#### There are a few things that Grive does not do at the moment:
-- support for filenames that are double in same folder (should be avoided!).
-- support for symbolic links.
+#### Not supported yet:
+- Identical filenames within the same folder (should be avoided!)
+- Symbolic links
 
 ___
 ### Install Grive (for Ubuntu 18.04)
